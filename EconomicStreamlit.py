@@ -90,7 +90,7 @@ df = get_economic_data()
 # --- SIDEBAR NAVIGATION ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/3141/3141158.png", width=80)
-    st.title("AI Mastery Hub")
+    st.title("Economic Analysis")
     st.markdown("---")
     analysis_type = st.radio("Analysis View", ["Overview", "Revenue Forecast", "Economic Impact"])
     st.info("The logic for this dashboard is powered by `EconomicSalesAnalysisProject.py`")
