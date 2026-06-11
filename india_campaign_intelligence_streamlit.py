@@ -246,111 +246,67 @@ def apply_theme():
         """
         <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        :root {
-            --ink: #101828;
-            --muted: #667085;
-            --line: #e4e7ec;
-            --paper: #f7f8fb;
-            --saffron: #ff7a1a;
-            --blue: #2f6fed;
-            --green: #16a34a;
-        }
-        html, body, [class*="css"] {
-            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        }
         .stApp {
-            background:
-                radial-gradient(circle at top left, rgba(255, 122, 26, .12), transparent 28rem),
-                linear-gradient(180deg, #fbfcff 0%, #f2f5f9 100%);
-            color: var(--ink);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
         }
         section[data-testid="stSidebar"] {
-            background: #ffffff;
-            border-right: 1px solid var(--line);
+            background-color: rgba(15, 23, 42, 0.9) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
         }
         .hero {
-            padding: 2rem 2.2rem;
-            border: 1px solid rgba(16, 24, 40, .08);
-            background: linear-gradient(135deg, #111827 0%, #1f2937 42%, #f97316 120%);
-            color: white;
-            border-radius: 8px;
-            box-shadow: 0 24px 60px rgba(16, 24, 40, .15);
+            padding: 2.5rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            margin-bottom: 2rem;
         }
         .hero h1 {
-            font-size: 2.5rem;
-            line-height: 1.05;
-            letter-spacing: 0;
-            margin: 0 0 .75rem 0;
-        }
-        .hero p {
-            max-width: 70rem;
-            color: rgba(255,255,255,.84);
-            font-size: 1.02rem;
-            margin: 0;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
         }
         .section-title {
-            margin-top: 1.5rem;
-            margin-bottom: .6rem;
-            font-size: 1.15rem;
+            margin: 2rem 0 1rem 0;
+            font-size: 1.5rem;
             font-weight: 800;
-            color: #111827;
+            color: #38bdf8;
         }
         .metric-card {
-            background: rgba(255,255,255,.88);
-            border: 1px solid rgba(16,24,40,.08);
-            border-radius: 8px;
-            padding: 1rem 1.1rem;
-            box-shadow: 0 14px 36px rgba(16,24,40,.08);
-            min-height: 112px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: #38bdf8;
         }
         .metric-label {
-            color: #667085;
-            font-size: .78rem;
+            color: #94a3b8;
+            font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: .05em;
-            margin-bottom: .55rem;
         }
         .metric-value {
-            font-size: 1.7rem;
+            font-size: 2rem;
             font-weight: 800;
-            color: #111827;
-            line-height: 1.05;
-        }
-        .metric-note {
-            color: #667085;
-            font-size: .83rem;
-            margin-top: .45rem;
+            color: #f8fafc;
         }
         .insight {
-            border-left: 4px solid #ff7a1a;
-            background: #fff7ed;
-            padding: .95rem 1rem;
-            border-radius: 0 8px 8px 0;
-            color: #7c2d12;
-            margin: .5rem 0 1rem 0;
-        }
-        .priority-critical {border-left: 4px solid #dc2626;}
-        .priority-high {border-left: 4px solid #f97316;}
-        .priority-medium {border-left: 4px solid #2f6fed;}
-        div[data-testid="stDataFrame"] {
-            border: 1px solid var(--line);
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid #38bdf8;
+            padding: 1.5rem;
             border-radius: 8px;
-            overflow: hidden;
+            color: #f1f5f9;
+            margin: 1.5rem 0;
         }
-        .stTabs [data-baseweb="tab-list"] {
-            gap: .35rem;
-        }
-        .stTabs [data-baseweb="tab"] {
-            background: white;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: .55rem .85rem;
-        }
-        .stTabs [aria-selected="true"] {
-            border-color: #ff7a1a;
-            color: #c2410c;
-        }
+        .priority-critical {border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.15);}
+        .priority-high {border-left: 4px solid #f97316; background: rgba(249, 115, 22, 0.15);}
+        .priority-medium {border-left: 4px solid #38bdf8; background: rgba(56, 189, 248, 0.15);}
         </style>
         """,
         unsafe_allow_html=True,
@@ -377,21 +333,24 @@ def insight(text):
 def chart_theme(chart, height=420):
     return (
         chart.properties(height=height)
-        .configure_view(strokeWidth=0)
-        .configure_axis(
-            labelColor="#475467",
-            titleColor="#344054",
-            gridColor="#eaecf0",
-            domain=False,
-            tickColor="#d0d5dd",
+        .configure(
+            background="transparent",
+            view={"strokeWidth": 0},
+            axis={
+                "labelColor": "#94a3b8",
+                "titleColor": "#f8fafc",
+                "gridColor": "rgba(255,255,255,0.1)",
+                "domain": False,
+                "tickColor": "#475467",
+            },
+            legend={
+                "labelColor": "#94a3b8",
+                "titleColor": "#f8fafc",
+                "orient": "top",
+                "symbolType": "circle",
+            },
+            title={"color": "#f8fafc", "fontSize": 16, "anchor": "start", "fontWeight": 800}
         )
-        .configure_legend(
-            labelColor="#344054",
-            titleColor="#344054",
-            orient="top",
-            symbolType="circle",
-        )
-        .configure_title(color="#111827", fontSize=16, anchor="start", fontWeight=800)
     )
 
 
@@ -481,19 +440,7 @@ else:
         "South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging."
     )
 
-
-tab_overview, tab_spend, tab_voters, tab_digital, tab_region, tab_actions = st.tabs(
-    [
-        "Executive Map",
-        "Spend Intelligence",
-        "Voter Signals",
-        "Digital War Room",
-        "Regional Battles",
-        "Action Plan",
-    ]
-)
-
-with tab_overview:
+if view_mode == "Executive":
     st.markdown('<div class="section-title">Alliance And Party Outcome</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1.05, 1])
 
@@ -563,7 +510,10 @@ with tab_overview:
         hide_index=True,
     )
 
-with tab_spend:
+elif view_mode == "Spend":
+    insight(
+        "BJP's larger budget created scale, but regional parties such as SP and DMK show stronger spend efficiency per seat won."
+    )
     st.markdown('<div class="section-title">Campaign Spend And Efficiency</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
 
@@ -639,7 +589,10 @@ with tab_spend:
             hide_index=True,
         )
 
-with tab_voters:
+elif view_mode == "Voters":
+    insight(
+        "Women voters, rural farmers, and youth blocs require different issue frames; welfare, MSP, jobs, and education cannot be treated as one generic message."
+    )
     st.markdown('<div class="section-title">Turnout And Demographic Lean</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1, 1.05])
 
@@ -702,7 +655,10 @@ with tab_voters:
 
     st.dataframe(demographics, use_container_width=True, hide_index=True)
 
-with tab_digital:
+elif view_mode == "Digital":
+    insight(
+        "Digital reach amplified narratives, but the report flags that engagement quality matters more than follower totals."
+    )
     st.markdown('<div class="section-title">Social Media And Ad Intelligence</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
 
@@ -764,7 +720,10 @@ with tab_digital:
         hide_index=True,
     )
 
-with tab_region:
+elif view_mode == "Regional":
+    insight(
+        "South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging."
+    )
     st.markdown('<div class="section-title">Zone Performance And High-Stakes Seats</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1.05, 1])
 
@@ -820,39 +779,20 @@ with tab_region:
 
     st.dataframe(constituencies, use_container_width=True, hide_index=True)
 
-with tab_actions:
-    st.markdown('<div class="section-title">Strategic Recommendation Board</div>', unsafe_allow_html=True)
-    priorities = ["Critical", "High", "Medium"]
-    cols = st.columns(len(priorities))
-    for col, priority in zip(cols, priorities):
-        with col:
+    st.markdown('<div class="section-title">Strategic Action Plan</div>', unsafe_allow_html=True)
+    cols = st.columns(3)
+    for i, priority in enumerate(["Critical", "High", "Medium"]):
+        with cols[i]:
             st.subheader(priority)
-            subset = recommendations[recommendations["Priority"] == priority]
-            for _, row in subset.iterrows():
-                priority_class = f"priority-{priority.lower()}"
-                st.markdown(
-                    f"""
-                    <div class="metric-card {priority_class}">
-                      <div class="metric-label">{row['Impact Area']} | {row['Timeline']}</div>
-                      <div style="font-size:.98rem;font-weight:700;color:#111827;">{row['Recommendation']}</div>
+            for _, row in recommendations[recommendations["Priority"] == priority].iterrows():
+                st.markdown(f"""
+                    <div class="metric-card priority-{priority.lower()}">
+                        <div class="metric-label">{row['Impact Area']} | {row['Timeline']}</div>
+                        <div style="font-size:1rem; font-weight:700; color:#f8fafc; margin-top:8px;">{row['Recommendation']}</div>
                     </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-                st.write("")
+                    <br>
+                """, unsafe_allow_html=True)
 
-    st.markdown('<div class="section-title">Data Quality Risk Flags</div>', unsafe_allow_html=True)
-    risks = pd.DataFrame(
-        [
-            ["Candidate affidavit inconsistencies", "18% affected", "Standardise ECI schema enforcement"],
-            ["Constituency boundary mismatches", "12% of third-party datasets", "Use official current shapefiles"],
-            ["Voter roll duplicates", "2.8M flagged entries", "Strengthen UIDAI-ECI de-duplication workflows"],
-            ["Follower inflation", "15-22% artificial counts", "Use authentic engagement as KPI"],
-            ["Expenditure under-reporting", "4-8x gap vs estimates", "Harmonise official and independent data"],
-        ],
-        columns=["Risk", "Signal", "Recommended Control"],
-    )
-    st.dataframe(risks, use_container_width=True, hide_index=True)
 
 st.caption(
     "Prepared as a Streamlit intelligence dashboard from the supplied PDF. "
