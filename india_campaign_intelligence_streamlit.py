@@ -1,5 +1,6 @@
 import pandas as pd
-import altair as alt
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 
 
@@ -339,28 +340,16 @@ def insight(text):
     st.markdown(f'<div class="insight"><b>Campaign intelligence:</b> {text}</div>', unsafe_allow_html=True)
 
 
-def chart_theme(chart, height=420):
-    return (
-        chart.properties(width="container", height=height)
-        .configure(
-            background="transparent",
-            view={"strokeWidth": 0},
-            axis={
-                "labelColor": "#94a3b8",
-                "titleColor": "#f8fafc",
-                "gridColor": "rgba(255,255,255,0.1)",
-                "domain": False,
-                "tickColor": "#475467",
-            },
-            legend={
-                "labelColor": "#94a3b8",
-                "titleColor": "#f8fafc",
-                "orient": "top",
-                "symbolType": "circle",
-            },
-            title={"color": "#f8fafc", "fontSize": 16, "anchor": "start", "fontWeight": 800}
-        )
+def update_plotly_layout(fig, height=420):
+    fig.update_layout(
+        height=height,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#f8fafc"),
+        margin=dict(t=50, b=20, l=20, r=20),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
+    return fig
 
 
 data = load_data()
@@ -441,51 +430,30 @@ if view_mode == "Executive":
         .sort_values("Seats Won", ascending=False)
     )
     with c1:
-        fig = (
-            alt.Chart(alliance, title="Seat Control By Alliance")
-            .mark_arc(innerRadius=82, outerRadius=158, stroke="#ffffff", strokeWidth=2)
-            .encode(
-                theta=alt.Theta("Seats Won:Q"),
-                color=alt.Color(
-                    "Alliance:N",
-                    scale=alt.Scale(
-                        domain=list(ALLIANCE_COLORS.keys()),
-                        range=list(ALLIANCE_COLORS.values()),
-                    ),
-                    legend=alt.Legend(title=None),
-                ),
-                tooltip=["Alliance:N", alt.Tooltip("Seats Won:Q", format=",.0f")],
-            )
+        fig = px.pie(
+            alliance, 
+            values="Seats Won", 
+            names="Alliance", 
+            hole=0.6,
+            title="Seat Control By Alliance",
+            color="Alliance",
+            color_discrete_map=ALLIANCE_COLORS
         )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
+        st.plotly_chart(update_plotly_layout(fig), use_container_width=True)
 
     with c2:
         top_party = filtered_party.sort_values("Seats Won", ascending=True)
-        fig = (
-            alt.Chart(top_party, title="Seats Won By Party")
-            .mark_bar(cornerRadiusEnd=4)
-            .encode(
-                x=alt.X("Seats Won:Q", title="Seats won"),
-                y=alt.Y("Party / Alliance:N", sort="-x", title=None),
-                color=alt.Color(
-                    "Alliance:N",
-                    scale=alt.Scale(
-                        domain=list(ALLIANCE_COLORS.keys()),
-                        range=list(ALLIANCE_COLORS.values()),
-                    ),
-                    legend=alt.Legend(title=None),
-                ),
-                tooltip=[
-                    "Party / Alliance:N",
-                    "Alliance:N",
-                    alt.Tooltip("Seats Won:Q", format=",.0f"),
-                    alt.Tooltip("Vote Share (%):Q", format=".2f"),
-                    "Status:N",
-                    alt.Tooltip("Swing vs 2019:Q", format="+.1f"),
-                ],
-            )
+        fig = px.bar(
+            top_party,
+            x="Seats Won",
+            y="Party / Alliance",
+            color="Alliance",
+            orientation="h",
+            title="Seats Won By Party",
+            color_discrete_map=ALLIANCE_COLORS,
+            hover_data=["Vote Share (%)", "Status", "Swing vs 2019"]
         )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
+        st.plotly_chart(update_plotly_layout(fig), use_container_width=True)
 
     st.dataframe(
         filtered_party.style.format(
@@ -511,23 +479,40 @@ elif view_mode == "Spend":
         var_name="Year",
         value_name="Spend (Cr)",
     ).dropna()
-    spend_pivot = spend_long.pivot(index="Party", columns="Year", values="Spend (Cr)").fillna(0)
+    
     st.subheader("Campaign Spend Growth")
-    st.bar_chart(spend_pivot, height=420, use_container_width=True)
-
-    efficiency = (
-        spending.dropna(subset=["Spend per Seat Won (Cr)"])
-        .sort_values("Spend per Seat Won (Cr)")
-        .set_index("Party")[["Spend per Seat Won (Cr)"]]
+    fig_growth = px.bar(
+        spend_long, 
+        x="Party", 
+        y="Spend (Cr)", 
+        color="Year", 
+        barmode="group",
+        color_discrete_sequence=["#818cf8", "#38bdf8"]
     )
+    st.plotly_chart(update_plotly_layout(fig_growth), use_container_width=True)
+
+    efficiency = spending.dropna(subset=["Spend per Seat Won (Cr)"]).sort_values("Spend per Seat Won (Cr)")
+    
     st.subheader("Spend Efficiency Per Seat Won")
-    st.bar_chart(efficiency, height=360, use_container_width=True)
+    fig_eff = px.bar(
+        efficiency, 
+        x="Party", 
+        y="Spend per Seat Won (Cr)",
+        color_discrete_sequence=["#fbbf24"]
+    )
+    st.plotly_chart(update_plotly_layout(fig_eff, height=360), use_container_width=True)
 
     st.subheader("BJP 2024 Channel Mix")
-    channel_view = bjp_channels.set_index("Campaign Channel")[["Allocation (%)", "Approx. Spend (Cr)"]]
-    st.bar_chart(channel_view[["Allocation (%)"]], height=360, use_container_width=True)
+    fig_channels = px.bar(
+        bjp_channels, 
+        x="Campaign Channel", 
+        y="Allocation (%)",
+        color_discrete_sequence=["#38bdf8"]
+    )
+    st.plotly_chart(update_plotly_layout(fig_channels, height=360), use_container_width=True)
+
     st.dataframe(
-        bjp_channels.style.format({"Allocation (%)": "{:.0f}%", "Approx. Spend (Cr)": "{:,.0f}"}),
+        bjp_channels.style.format({"Allocation (%)": "{:.1f}%", "Approx. Spend (Cr)": "{:,.0f}"}),
         use_container_width=True,
         hide_index=True,
     )
@@ -539,60 +524,38 @@ elif view_mode == "Voters":
 
     with c1:
         sorted_turnout = filtered_turnout.sort_values("Turnout (%)", ascending=True)
-        fig = (
-            alt.Chart(sorted_turnout, title="State Turnout With 2019 Change")
-            .mark_bar(cornerRadiusEnd=4)
-            .encode(
-                x=alt.X("Turnout (%):Q", title="Turnout"),
-                y=alt.Y("State:N", sort="-x", title=None),
-                color=alt.Color(
-                    "Change:Q",
-                    scale=alt.Scale(domain=[-5, 0, 7], range=["#dc2626", "#f8fafc", "#16a34a"]),
-                    title="Change vs 2019",
-                ),
-                tooltip=[
-                    "State:N",
-                    alt.Tooltip("Turnout (%):Q", format=".1f"),
-                    alt.Tooltip("2019 Turnout (%):Q", format=".1f"),
-                    alt.Tooltip("Change:Q", format="+.1f"),
-                    alt.Tooltip("Registered Voters (Mn):Q", format=".1f"),
-                    alt.Tooltip("Votes Polled (Mn):Q", format=".1f"),
-                ],
-            )
+        fig = px.bar(
+            sorted_turnout,
+            x="Turnout (%)",
+            y="State",
+            orientation="h",
+            title="State Turnout With 2019 Change",
+            color="Change",
+            color_continuous_scale=[[0, "#dc2626"], [0.5, "#f8fafc"], [1, "#16a34a"]],
+            hover_data=["2019 Turnout (%)", "Change", "Registered Voters (Mn)"]
         )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
+        st.plotly_chart(update_plotly_layout(fig), use_container_width=True)
 
     with c2:
-        demo_long = demographics.melt(
-            id_vars=["Voter Segment", "Share of Electorate (%)", "Key Issue"],
-            value_vars=["BJP Lean (%)", "Congress Lean (%)", "Regional Party (%)"],
-            var_name="Political Lean",
-            value_name="Lean (%)",
+        # Melt logic remains the same for grouped bar
+        demo_long = demographics.melt(id_vars=["Voter Segment", "Share of Electorate (%)", "Key Issue"], 
+                                      value_vars=["BJP Lean (%)", "Congress Lean (%)", "Regional Party (%)"],
+                                      var_name="Political Lean", value_name="Lean (%)")
+        fig = px.bar(
+            demo_long,
+            x="Voter Segment",
+            y="Lean (%)",
+            color="Political Lean",
+            barmode="group",
+            title="Estimated Segment Preference",
+            color_discrete_map={
+                "BJP Lean (%)": "#ff7a1a",
+                "Congress Lean (%)": "#2f6fed",
+                "Regional Party (%)": "#1f9d76"
+            },
+            hover_data=["Share of Electorate (%)", "Key Issue"]
         )
-        fig = (
-            alt.Chart(demo_long, title="Estimated Segment Preference")
-            .mark_bar(cornerRadiusEnd=2)
-            .encode(
-                x=alt.X("Voter Segment:N", title=None, sort=None, axis=alt.Axis(labelAngle=-35)),
-                y=alt.Y("Lean (%):Q", title="Estimated lean"),
-                color=alt.Color(
-                    "Political Lean:N",
-                    scale=alt.Scale(
-                        domain=["BJP Lean (%)", "Congress Lean (%)", "Regional Party (%)"],
-                        range=["#ff7a1a", "#2f6fed", "#1f9d76"],
-                    ),
-                    legend=alt.Legend(title=None),
-                ),
-                tooltip=[
-                    "Voter Segment:N",
-                    "Political Lean:N",
-                    alt.Tooltip("Lean (%):Q", format=".0f"),
-                    alt.Tooltip("Share of Electorate (%):Q", format=".0f"),
-                    "Key Issue:N",
-                ],
-            )
-        )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
+        st.plotly_chart(update_plotly_layout(fig), use_container_width=True)
 
     st.dataframe(demographics, use_container_width=True, hide_index=True)
 
@@ -600,17 +563,22 @@ elif view_mode == "Digital":
     insight("Digital reach amplified narratives, but the report flags that engagement quality matters more than follower totals.")
     st.markdown('<div class="section-title">Social Media And Ad Intelligence</div>', unsafe_allow_html=True)
 
-    social_chart = social.set_index("Platform")[["BJP", "Congress", "SP", "TMC"]]
     st.subheader("Social Media Presence At Campaign Peak")
-    st.bar_chart(social_chart, height=420, use_container_width=True)
+    social_long = social.melt(id_vars="Platform", var_name="Party", value_name="Followers (Mn)")
+    fig_social = px.bar(social_long, x="Platform", y="Followers (Mn)", color="Party", barmode="group",
+                        color_discrete_map=PARTY_COLORS)
+    st.plotly_chart(update_plotly_layout(fig_social), use_container_width=True)
 
-    digital_chart = digital_ads.set_index("Party")[["Google Ads Spend (Cr)", "Meta Ads Spend (Cr)"]]
     st.subheader("Digital Ad Spend By Platform")
-    st.bar_chart(digital_chart, height=380, use_container_width=True)
+    ads_long = digital_ads.melt(id_vars="Party", value_vars=["Google Ads Spend (Cr)", "Meta Ads Spend (Cr)"], 
+                                var_name="Platform", value_name="Spend (Cr)")
+    fig_ads = px.bar(ads_long, x="Party", y="Spend (Cr)", color="Platform", barmode="group")
+    st.plotly_chart(update_plotly_layout(fig_ads, height=380), use_container_width=True)
 
-    impression_chart = digital_ads.set_index("Party")[["Total Impressions (Bn)"]]
     st.subheader("Total Digital Impressions")
-    st.bar_chart(impression_chart, height=340, use_container_width=True)
+    fig_impressions = px.bar(digital_ads, x="Party", y="Total Impressions (Bn)", color="Party", 
+                             color_discrete_map=PARTY_COLORS)
+    st.plotly_chart(update_plotly_layout(fig_impressions, height=340), use_container_width=True)
 
     st.dataframe(
         digital_ads.style.format(
@@ -630,14 +598,17 @@ elif view_mode == "Regional":
     insight("South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging.")
     st.markdown('<div class="section-title">Zone Performance And High-Stakes Seats</div>', unsafe_allow_html=True)
 
-    zone_chart = filtered_zones.set_index("Zone")[["NDA Won", "INDIA Won", "Others"]]
     st.subheader("Zone-Wise Seat Control")
-    st.bar_chart(zone_chart, height=420, use_container_width=True)
+    zone_long = filtered_zones.melt(id_vars="Zone", value_vars=["NDA Won", "INDIA Won", "Others"], 
+                                   var_name="Alliance", value_name="Seats")
+    fig_zone = px.bar(zone_long, x="Zone", y="Seats", color="Alliance", barmode="group",
+                      color_discrete_map=ALLIANCE_COLORS)
+    st.plotly_chart(update_plotly_layout(fig_zone), use_container_width=True)
 
     competitive = constituencies.dropna(subset=["Margin (Votes)"]).copy()
-    margin_chart = competitive.sort_values("Margin (Votes)").set_index("Constituency")[["Margin (Votes)"]]
     st.subheader("High-Stakes Constituency Margins")
-    st.bar_chart(margin_chart, height=420, use_container_width=True)
+    fig_margin = px.bar(competitive.sort_values("Margin (Votes)"), x="Margin (Votes)", y="Constituency", orientation="h")
+    st.plotly_chart(update_plotly_layout(fig_margin), use_container_width=True)
 
     st.dataframe(constituencies, use_container_width=True, hide_index=True)
 
@@ -655,6 +626,6 @@ elif view_mode == "Regional":
                 <div style="margin-bottom:15px;"></div>""", unsafe_allow_html=True)
 
 st.caption(
-    "Prepared as a Streamlit intelligence dashboard from the supplied PDF. "
+    "Prepared as a Streamlit intelligence dashboard. "
     "Use for portfolio, analysis presentation, or campaign analytics demonstration."
 )
