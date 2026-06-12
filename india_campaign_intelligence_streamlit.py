@@ -385,7 +385,7 @@ with st.sidebar:
     st.divider()
     st.caption("Source notes")
     st.write(
-        "Data is transcribed from the supplied India Election Campaign Analysis Report PDF. "
+        "Data is transcribed from the supplied India Election Campaign Analysis Report. "
         "Spend figures are estimates and should be validated before operational use."
     )
 
