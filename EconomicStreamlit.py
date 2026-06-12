@@ -77,12 +77,8 @@ st.markdown("""
 def get_economic_data():
     # This is where you would call functions from EconomicSalesAnalysisProject.py
     # Example: return load_and_clean_data()
-    data = pd.DataFrame({
-        'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
-        'Revenue': [45000, 52000, 49000, 61000, 58000, 72000, 81000, 78000],
-        'Forecast': [42000, 50000, 51000, 58000, 60000, 70000, 79000, 82000],
-        'Inflation_Rate': [2.1, 2.3, 2.5, 2.4, 2.2, 2.1, 2.0, 1.9]
-    })
+    data = pd.read_csv("ecommerce_sales.csv", parse_dates=["Order_Date"])
+    data['Month'] = data['Order_Date'].dt.to_period('M').astype(str)
     return data
 
 df = get_economic_data()
@@ -101,41 +97,47 @@ st.markdown("#### Advanced Insights & Financial Projections")
 
 if analysis_type == "Overview":
     # --- ROW 1: KPI METRICS ---
+    total_rev = df['Revenue'].sum()
+    avg_monthly = df.groupby('Month')['Revenue'].sum().mean()
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.metric("Total YTD Revenue", "$491,000", delta="12%")
+        st.metric("Total Revenue", f"₹{total_rev:,.0f}", delta="12%")
     with col2:
-        st.metric("Avg. Monthly Sales", "$61,375", delta="4.5%")
+        st.metric("Avg. Monthly Sales", f"₹{avg_monthly:,.0f}", delta="4.5%")
     with col3:
         st.metric("Projected Growth", "18.2%", delta="2.1%")
     with col4:
-        st.metric("Economic Volatility", "Low", delta="-0.4%", delta_color="inverse")
+        st.metric("Avg. Discount", f"{df['Discount_%'].mean():.1f}%", delta="-0.4%", delta_color="inverse")
 
     st.markdown("---")
     
     col_a, col_b = st.columns(2)
     with col_a:
-        fig_pie = px.pie(names=['North', 'South', 'East', 'West'], values=[25, 35, 20, 20], hole=0.6)
+        region_data = df.groupby('City')['Revenue'].sum().reset_index()
+        fig_pie = px.pie(region_data, names='City', values='Revenue', hole=0.6)
         fig_pie.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"), title="Regional Sales")
         st.plotly_chart(fig_pie, use_container_width=True)
     with col_b:
         st.write("### Market Summary")
-        st.write("- **South Region** leads performance.\ - **Growth** is steady despite inflation.")
-
+        st.write("- **South Region** leads performance.\n- **Growth** is steady despite inflation.")
 elif analysis_type == "Revenue Forecast":
     st.subheader("Revenue vs Economic Forecast")
+    monthly_rev = df.groupby('Month')['Revenue'].sum().reset_index().sort_values('Month')
+    # Generating a mock forecast as the CSV does not contain forecast data
+    monthly_rev['Forecast'] = monthly_rev['Revenue'] * 1.08
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df['Month'], y=df['Revenue'], fill='tozeroy', name='Actual Revenue', line=dict(width=4, color='#38bdf8')))
-    fig.add_trace(go.Scatter(x=df['Month'], y=df['Forecast'], name='Economic Forecast', line=dict(width=3, color='#818cf8', dash='dot')))
+    fig.add_trace(go.Scatter(x=monthly_rev['Month'], y=monthly_rev['Revenue'], fill='tozeroy', name='Actual Revenue', line=dict(width=4, color='#38bdf8')))
+    fig.add_trace(go.Scatter(x=monthly_rev['Month'], y=monthly_rev['Forecast'], name='Economic Forecast', line=dict(width=3, color='#818cf8', dash='dot')))
     fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
 
 elif analysis_type == "Economic Impact":
-    st.subheader("Inflation Rate Correlation")
-    fig_impact = px.bar(df, x='Month', y='Inflation_Rate', color='Inflation_Rate', color_continuous_scale='RdYlGn_r')
+    st.subheader("Average Monthly Discount Trend")
+    impact_data = df.groupby('Month')['Discount_%'].mean().reset_index().sort_values('Month')
+    fig_impact = px.bar(impact_data, x='Month', y='Discount_%', color='Discount_%', color_continuous_scale='RdYlGn_r')
     fig_impact.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
     st.plotly_chart(fig_impact, use_container_width=True)
-    st.info("Higher inflation rates in Q1-Q2 correlate with conservative forecasting.")
+    st.info("Trend analysis of discount percentages highlights seasonality and promotional impact.")
 
 # --- ROW 3: DATA INSPECTION ---
 with st.expander("🔍 View Raw Analysis Data"):
