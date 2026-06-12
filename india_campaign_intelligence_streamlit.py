@@ -504,76 +504,33 @@ if view_mode == "Executive":
 elif view_mode == "Spend":
     insight("BJP's larger budget created scale, but regional parties such as SP and DMK show stronger spend efficiency per seat won.")
     st.markdown('<div class="section-title">Campaign Spend And Efficiency</div>', unsafe_allow_html=True)
-    with st.container():
-        spend_long = spending.melt(
-            id_vars=["Party"],
-            value_vars=["2019 Spend (Cr)", "2024 Spend (Cr)"],
-            var_name="Year",
-            value_name="Spend (Cr)",
-        ).dropna()
-        fig = (
-            alt.Chart(spend_long, title="Campaign Spend Growth")
-            .mark_bar(cornerRadiusEnd=4)
-            .encode(
-                x=alt.X("Party:N", title=None),
-                y=alt.Y("Spend (Cr):Q", title="Spend (Rs crore)"),
-                color=alt.Color(
-                    "Year:N",
-                    scale=alt.Scale(
-                        domain=["2019 Spend (Cr)", "2024 Spend (Cr)"],
-                        range=["#94a3b8", "#ff7a1a"],
-                    ),
-                    legend=alt.Legend(title=None),
-                ),
-                xOffset="Year:N",
-                tooltip=["Party:N", "Year:N", alt.Tooltip("Spend (Cr):Q", format=",.0f")],
-            )
-        )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
 
-    with st.container():
-        efficiency = spending.dropna(subset=["Spend per Seat Won (Cr)"]).sort_values("Spend per Seat Won (Cr)")
-        points = (
-            alt.Chart(efficiency, title="Spend Scale vs Seat Efficiency")
-            .mark_circle(opacity=0.86)
-            .encode(
-                x=alt.X("2024 Spend (Cr):Q", title="2024 spend (Rs crore)"),
-                y=alt.Y("Spend per Seat Won (Cr):Q", title="Spend per seat won (Rs crore)"),
-                size=alt.Size("2024 Spend (Cr):Q", legend=None, scale=alt.Scale(range=[200, 2400])),
-                color=alt.Color("Party:N", legend=alt.Legend(title=None)),
-                tooltip=[
-                    "Party:N",
-                    alt.Tooltip("2024 Spend (Cr):Q", format=",.0f"),
-                    alt.Tooltip("Spend per Seat Won (Cr):Q", format=".1f"),
-                    "Primary Channel:N",
-                ],
-            )
-        )
-        labels = points.mark_text(align="center", baseline="bottom", dy=-10, fontWeight=700).encode(text="Party:N")
-        st.altair_chart(chart_theme(points + labels, 420), width="stretch")
+    spend_long = spending.melt(
+        id_vars=["Party"],
+        value_vars=["2019 Spend (Cr)", "2024 Spend (Cr)"],
+        var_name="Year",
+        value_name="Spend (Cr)",
+    ).dropna()
+    spend_pivot = spend_long.pivot(index="Party", columns="Year", values="Spend (Cr)").fillna(0)
+    st.subheader("Campaign Spend Growth")
+    st.bar_chart(spend_pivot, height=420, use_container_width=True)
 
-    with st.container():
-        fig = (
-            alt.Chart(bjp_channels, title="BJP 2024 Channel Mix")
-            .mark_arc(innerRadius=76, outerRadius=150, stroke="#ffffff", strokeWidth=2)
-            .encode(
-                theta=alt.Theta("Allocation (%):Q"),
-                color=alt.Color("Campaign Channel:N", legend=alt.Legend(title=None, columns=1)),
-                tooltip=[
-                    "Campaign Channel:N",
-                    alt.Tooltip("Allocation (%):Q", format=".0f"),
-                    alt.Tooltip("Approx. Spend (Cr):Q", format=",.0f"),
-                    "Key Activity:N",
-                ],
-            )
-        )
-        st.altair_chart(chart_theme(fig, 440), width="stretch")
-    with st.container():
-        st.dataframe(
-            bjp_channels.style.format({"Allocation (%)": "{:.0f}%", "Approx. Spend (Cr)": "{:,.0f}"}),
-            use_container_width=True,
-            hide_index=True,
-        )
+    efficiency = (
+        spending.dropna(subset=["Spend per Seat Won (Cr)"])
+        .sort_values("Spend per Seat Won (Cr)")
+        .set_index("Party")[["Spend per Seat Won (Cr)"]]
+    )
+    st.subheader("Spend Efficiency Per Seat Won")
+    st.bar_chart(efficiency, height=360, use_container_width=True)
+
+    st.subheader("BJP 2024 Channel Mix")
+    channel_view = bjp_channels.set_index("Campaign Channel")[["Allocation (%)", "Approx. Spend (Cr)"]]
+    st.bar_chart(channel_view[["Allocation (%)"]], height=360, use_container_width=True)
+    st.dataframe(
+        bjp_channels.style.format({"Allocation (%)": "{:.0f}%", "Approx. Spend (Cr)": "{:,.0f}"}),
+        use_container_width=True,
+        hide_index=True,
+    )
 
 elif view_mode == "Voters":
     insight("Women voters, rural farmers, and youth blocs require different issue frames; welfare, MSP, jobs, and education cannot be treated as one generic message.")
@@ -642,49 +599,18 @@ elif view_mode == "Voters":
 elif view_mode == "Digital":
     insight("Digital reach amplified narratives, but the report flags that engagement quality matters more than follower totals.")
     st.markdown('<div class="section-title">Social Media And Ad Intelligence</div>', unsafe_allow_html=True)
-    with st.container():
-        social_long = social.melt(id_vars=["Platform"], var_name="Party", value_name="Followers (Mn)")
-        fig = (
-            alt.Chart(social_long, title="Social Media Presence At Campaign Peak")
-            .mark_bar(cornerRadiusEnd=4)
-            .encode(
-                x=alt.X("Platform:N", title=None),
-                y=alt.Y("Followers (Mn):Q", title="Followers (mn)"),
-                color=alt.Color(
-                    "Party:N",
-                    scale=alt.Scale(
-                        domain=["BJP", "Congress", "SP", "TMC"],
-                        range=["#ff7a1a", "#2f6fed", "#d94848", "#1f9d76"],
-                    ),
-                    legend=alt.Legend(title=None),
-                ),
-                xOffset="Party:N",
-                tooltip=["Platform:N", "Party:N", alt.Tooltip("Followers (Mn):Q", format=".1f")],
-            )
-        )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
 
-    with st.container():
-        points = (
-            alt.Chart(digital_ads, title="Digital Spend And Reach")
-            .mark_circle(opacity=0.86)
-            .encode(
-                x=alt.X("Total Digital Spend (Cr):Q", title="Digital spend (Rs crore)"),
-                y=alt.Y("Total Impressions (Bn):Q", title="Impressions (bn)"),
-                size=alt.Size("CPM Avg:Q", legend=alt.Legend(title="Avg CPM"), scale=alt.Scale(range=[180, 1500])),
-                color=alt.Color("Party:N", legend=alt.Legend(title=None)),
-                tooltip=[
-                    "Party:N",
-                    alt.Tooltip("Google Ads Spend (Cr):Q", format=",.0f"),
-                    alt.Tooltip("Meta Ads Spend (Cr):Q", format=",.0f"),
-                    alt.Tooltip("Total Impressions (Bn):Q", format=".1f"),
-                    alt.Tooltip("CPM Avg:Q", format=".1f"),
-                    "Top Message Theme:N",
-                ],
-            )
-        )
-        labels = points.mark_text(align="center", baseline="bottom", dy=-10, fontWeight=700).encode(text="Party:N")
-        st.altair_chart(chart_theme(points + labels, 420), width="stretch")
+    social_chart = social.set_index("Platform")[["BJP", "Congress", "SP", "TMC"]]
+    st.subheader("Social Media Presence At Campaign Peak")
+    st.bar_chart(social_chart, height=420, use_container_width=True)
+
+    digital_chart = digital_ads.set_index("Party")[["Google Ads Spend (Cr)", "Meta Ads Spend (Cr)"]]
+    st.subheader("Digital Ad Spend By Platform")
+    st.bar_chart(digital_chart, height=380, use_container_width=True)
+
+    impression_chart = digital_ads.set_index("Party")[["Total Impressions (Bn)"]]
+    st.subheader("Total Digital Impressions")
+    st.bar_chart(impression_chart, height=340, use_container_width=True)
 
     st.dataframe(
         digital_ads.style.format(
@@ -703,55 +629,15 @@ elif view_mode == "Digital":
 elif view_mode == "Regional":
     insight("South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging.")
     st.markdown('<div class="section-title">Zone Performance And High-Stakes Seats</div>', unsafe_allow_html=True)
-    with st.container():
-        zone_long = filtered_zones.melt(
-            id_vars=["Zone", "States", "Zone Winner", "Key Narrative"],
-            value_vars=["NDA Won", "INDIA Won", "Others"],
-            var_name="Alliance",
-            value_name="Seats",
-        )
-        fig = (
-            alt.Chart(zone_long, title="Zone-Wise Seat Control")
-            .mark_bar(cornerRadiusEnd=4)
-            .encode(
-                x=alt.X("Zone:N", title=None),
-                y=alt.Y("Seats:Q", title="Seats"),
-                color=alt.Color(
-                    "Alliance:N",
-                    scale=alt.Scale(
-                        domain=["NDA Won", "INDIA Won", "Others"],
-                        range=["#ff7a1a", "#2f6fed", "#8b5cf6"],
-                    ),
-                    legend=alt.Legend(title=None),
-                ),
-                tooltip=["Zone:N", "Alliance:N", alt.Tooltip("Seats:Q", format=",.0f"), "States:N", "Zone Winner:N", "Key Narrative:N"],
-            )
-        )
-        st.altair_chart(chart_theme(fig, 420), width="stretch")
 
-    with st.container():
-        competitive = constituencies.dropna(subset=["Margin (Votes)", "Turnout (%)"]).copy()
-        points = (
-            alt.Chart(competitive, title="High-Stakes Constituencies")
-            .mark_circle(opacity=0.86)
-            .encode(
-                x=alt.X("Margin (Votes):Q", title="Winning margin"),
-                y=alt.Y("Turnout (%):Q", title="Turnout"),
-                size=alt.Size("Campaign Spend (Cr):Q", legend=alt.Legend(title="Spend Cr"), scale=alt.Scale(range=[180, 1500])),
-                color=alt.Color("Party:N", legend=alt.Legend(title=None)),
-                tooltip=[
-                    "Constituency:N",
-                    "State:N",
-                    "Winner:N",
-                    "Party:N",
-                    alt.Tooltip("Margin (Votes):Q", format=",.0f"),
-                    alt.Tooltip("Turnout (%):Q", format=".1f"),
-                    alt.Tooltip("Campaign Spend (Cr):Q", format=".0f"),
-                ],
-            )
-        )
-        labels = points.mark_text(align="center", baseline="bottom", dy=-10, fontWeight=700).encode(text="Constituency:N")
-        st.altair_chart(chart_theme(points + labels, 420), width="stretch")
+    zone_chart = filtered_zones.set_index("Zone")[["NDA Won", "INDIA Won", "Others"]]
+    st.subheader("Zone-Wise Seat Control")
+    st.bar_chart(zone_chart, height=420, use_container_width=True)
+
+    competitive = constituencies.dropna(subset=["Margin (Votes)"]).copy()
+    margin_chart = competitive.sort_values("Margin (Votes)").set_index("Constituency")[["Margin (Votes)"]]
+    st.subheader("High-Stakes Constituency Margins")
+    st.bar_chart(margin_chart, height=420, use_container_width=True)
 
     st.dataframe(constituencies, use_container_width=True, hide_index=True)
 
@@ -767,8 +653,8 @@ elif view_mode == "Regional":
                         <div style="font-size:0.95rem; font-weight:700; color:#f8fafc; margin-top:10px; line-height:1.4;">{row['Recommendation']}</div>
                     </div>
                 <div style="margin-bottom:15px;"></div>""", unsafe_allow_html=True)
+
 st.caption(
     "Prepared as a Streamlit intelligence dashboard from the supplied PDF. "
     "Use for portfolio, analysis presentation, or campaign analytics demonstration."
 )
-
