@@ -248,6 +248,7 @@ def apply_theme():
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         .stApp {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background-attachment: fixed;
             color: #f8fafc;
             font-family: 'Inter', sans-serif;
         }
@@ -280,6 +281,8 @@ def apply_theme():
             border-radius: 12px;
             padding: 1.5rem;
             transition: transform 0.3s ease;
+            overflow: hidden;
+            box-sizing: border-box;
         }
         .metric-card:hover {
             transform: translateY(-5px);
@@ -291,12 +294,18 @@ def apply_theme():
             font-weight: 700;
             text-transform: uppercase;
         }
+        .metric-note {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            line-height: 1.2;
+        }
         .metric-value {
             font-size: 2rem;
             font-weight: 800;
             color: #f8fafc;
         }
-        .insight {
+        .insight, div[data-testid="stMarkdownContainer"] .insight {
             background: rgba(56, 189, 248, 0.1);
             border-left: 4px solid #38bdf8;
             padding: 1.5rem;
@@ -423,24 +432,6 @@ if view_mode == "Executive":
         "NDA crossed the majority threshold with 293 seats, while the INDIA bloc reached 234. "
         "The decisive pattern was not national uniformity, but regional variation: NDA strength in North, West, and NE; INDIA strength in South and East."
     )
-elif view_mode == "Spend":
-    insight(
-        "BJP's larger budget created scale, but regional parties such as SP and DMK show stronger spend efficiency per seat won."
-    )
-elif view_mode == "Voters":
-    insight(
-        "Women voters, rural farmers, and youth blocs require different issue frames; welfare, MSP, jobs, and education cannot be treated as one generic message."
-    )
-elif view_mode == "Digital":
-    insight(
-        "Digital reach amplified narratives, but the report flags that engagement quality matters more than follower totals because follower inflation is material."
-    )
-else:
-    insight(
-        "South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging."
-    )
-
-if view_mode == "Executive":
     st.markdown('<div class="section-title">Alliance And Party Outcome</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1.05, 1])
 
@@ -466,7 +457,7 @@ if view_mode == "Executive":
                 tooltip=["Alliance:N", alt.Tooltip("Seats Won:Q", format=",.0f")],
             )
         )
-        st.altair_chart(chart_theme(fig, 430), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     with c2:
         top_party = filtered_party.sort_values("Seats Won", ascending=True)
@@ -494,7 +485,7 @@ if view_mode == "Executive":
                 ],
             )
         )
-        st.altair_chart(chart_theme(fig, 430), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     st.dataframe(
         filtered_party.style.format(
@@ -511,9 +502,7 @@ if view_mode == "Executive":
     )
 
 elif view_mode == "Spend":
-    insight(
-        "BJP's larger budget created scale, but regional parties such as SP and DMK show stronger spend efficiency per seat won."
-    )
+    insight("BJP's larger budget created scale, but regional parties such as SP and DMK show stronger spend efficiency per seat won.")
     st.markdown('<div class="section-title">Campaign Spend And Efficiency</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
 
@@ -542,7 +531,7 @@ elif view_mode == "Spend":
                 tooltip=["Party:N", "Year:N", alt.Tooltip("Spend (Cr):Q", format=",.0f")],
             )
         )
-        st.altair_chart(chart_theme(fig, 430), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     with c2:
         efficiency = spending.dropna(subset=["Spend per Seat Won (Cr)"]).sort_values("Spend per Seat Won (Cr)")
@@ -563,7 +552,7 @@ elif view_mode == "Spend":
             )
         )
         labels = points.mark_text(align="center", baseline="bottom", dy=-10, fontWeight=700).encode(text="Party:N")
-        st.altair_chart(chart_theme(points + labels, 430), use_container_width=True)
+        st.altair_chart(chart_theme(points + labels, 400), use_container_width=True)
 
     c3, c4 = st.columns([.9, 1.1])
     with c3:
@@ -590,9 +579,7 @@ elif view_mode == "Spend":
         )
 
 elif view_mode == "Voters":
-    insight(
-        "Women voters, rural farmers, and youth blocs require different issue frames; welfare, MSP, jobs, and education cannot be treated as one generic message."
-    )
+    insight("Women voters, rural farmers, and youth blocs require different issue frames; welfare, MSP, jobs, and education cannot be treated as one generic message.")
     st.markdown('<div class="section-title">Turnout And Demographic Lean</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1, 1.05])
 
@@ -619,7 +606,7 @@ elif view_mode == "Voters":
                 ],
             )
         )
-        st.altair_chart(chart_theme(fig, 470), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     with c2:
         demo_long = demographics.melt(
@@ -651,14 +638,12 @@ elif view_mode == "Voters":
                 ],
             )
         )
-        st.altair_chart(chart_theme(fig, 470), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     st.dataframe(demographics, use_container_width=True, hide_index=True)
 
 elif view_mode == "Digital":
-    insight(
-        "Digital reach amplified narratives, but the report flags that engagement quality matters more than follower totals."
-    )
+    insight("Digital reach amplified narratives, but the report flags that engagement quality matters more than follower totals.")
     st.markdown('<div class="section-title">Social Media And Ad Intelligence</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
 
@@ -682,7 +667,7 @@ elif view_mode == "Digital":
                 tooltip=["Platform:N", "Party:N", alt.Tooltip("Followers (Mn):Q", format=".1f")],
             )
         )
-        st.altair_chart(chart_theme(fig, 430), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     with c2:
         points = (
@@ -704,7 +689,7 @@ elif view_mode == "Digital":
             )
         )
         labels = points.mark_text(align="center", baseline="bottom", dy=-10, fontWeight=700).encode(text="Party:N")
-        st.altair_chart(chart_theme(points + labels, 430), use_container_width=True)
+        st.altair_chart(chart_theme(points + labels, 400), use_container_width=True)
 
     st.dataframe(
         digital_ads.style.format(
@@ -721,9 +706,7 @@ elif view_mode == "Digital":
     )
 
 elif view_mode == "Regional":
-    insight(
-        "South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging."
-    )
+    insight("South and East remain structurally different campaign environments, where local identity and regional cadre networks offset national messaging.")
     st.markdown('<div class="section-title">Zone Performance And High-Stakes Seats</div>', unsafe_allow_html=True)
     c1, c2 = st.columns([1.05, 1])
 
@@ -751,7 +734,7 @@ elif view_mode == "Regional":
                 tooltip=["Zone:N", "Alliance:N", alt.Tooltip("Seats:Q", format=",.0f"), "States:N", "Zone Winner:N", "Key Narrative:N"],
             )
         )
-        st.altair_chart(chart_theme(fig, 430), use_container_width=True)
+        st.altair_chart(chart_theme(fig, 400), use_container_width=True)
 
     with c2:
         competitive = constituencies.dropna(subset=["Margin (Votes)", "Turnout (%)"]).copy()
@@ -775,7 +758,7 @@ elif view_mode == "Regional":
             )
         )
         labels = points.mark_text(align="center", baseline="bottom", dy=-10, fontWeight=700).encode(text="Constituency:N")
-        st.altair_chart(chart_theme(points + labels, 430), use_container_width=True)
+        st.altair_chart(chart_theme(points + labels, 400), use_container_width=True)
 
     st.dataframe(constituencies, use_container_width=True, hide_index=True)
 
@@ -787,13 +770,10 @@ elif view_mode == "Regional":
             for _, row in recommendations[recommendations["Priority"] == priority].iterrows():
                 st.markdown(f"""
                     <div class="metric-card priority-{priority.lower()}">
-                        <div class="metric-label">{row['Impact Area']} | {row['Timeline']}</div>
-                        <div style="font-size:1rem; font-weight:700; color:#f8fafc; margin-top:8px;">{row['Recommendation']}</div>
+                        <div class="metric-label">{row['Impact Area']} <br> {row['Timeline']}</div>
+                        <div style="font-size:0.95rem; font-weight:700; color:#f8fafc; margin-top:10px; line-height:1.4;">{row['Recommendation']}</div>
                     </div>
-                    <br>
-                """, unsafe_allow_html=True)
-
-
+                <div style="margin-bottom:15px;"></div>""", unsafe_allow_html=True)
 st.caption(
     "Prepared as a Streamlit intelligence dashboard from the supplied PDF. "
     "Use for portfolio, analysis presentation, or campaign analytics demonstration."
