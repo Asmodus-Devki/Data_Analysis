@@ -9,8 +9,15 @@ st.set_page_config(
 )
 
 # Load CSS
-with open("style.css") as f:
-    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+from pathlib import Path
+
+css_file = Path(__file__).parent / "style.css"
+
+with open(css_file, encoding="utf-8") as f:
+    st.markdown(
+        f"<style>{f.read()}</style>",
+        unsafe_allow_html=True
+    )
 
 df = load_data()
 
