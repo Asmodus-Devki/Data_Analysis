@@ -1,0 +1,28 @@
+.main {
+    background-color: #0f172a;
+}
+
+.stApp {
+    background-color: #0f172a;
+}
+
+.metric-card{
+    background:#111827;
+    padding:20px;
+    border-radius:15px;
+    border-left:5px solid #ff9933;
+}
+
+.insight-card{
+    background:#111827;
+    padding:20px;
+    border-radius:15px;
+}
+
+h1,h2,h3{
+    color:white;
+}
+
+[data-testid="stSidebar"]{
+    background:#111827;
+}
