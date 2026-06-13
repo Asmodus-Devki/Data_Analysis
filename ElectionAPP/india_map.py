@@ -7,9 +7,6 @@ def create_state_map(df):
 
     geojson_path = Path(__file__).parent / "india_states.geojson"
 
-    st.write("GeoJSON Path:", geojson_path)
-    st.write("Exists:", geojson_path.exists())
-
     with open(
         geojson_path,
         "r",
