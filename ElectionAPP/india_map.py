@@ -1,16 +1,18 @@
 import json
 import plotly.express as px
-
+from pathlib import Path
+import json
 
 def create_state_map(df):
 
-    with open(
-        "india_states.geojson",
-        "r",
-        encoding="utf-8"
-    ) as f:
+geojson_path = Path(__file__).parent / "india_states.geojson"
 
-        geojson = json.load(f)
+with open(
+    geojson_path,
+    "r",
+    encoding="utf-8"
+) as f:
+    geojson = json.load(f)
 
     # State name mapping
     state_mapping = {
