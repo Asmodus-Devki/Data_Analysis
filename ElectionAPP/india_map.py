@@ -1,18 +1,21 @@
 import json
-import plotly.express as px
 from pathlib import Path
-import json
+import streamlit as st
+import plotly.express as px
 
 def create_state_map(df):
 
-geojson_path = Path(__file__).parent / "india_states.geojson"
+    geojson_path = Path(__file__).parent / "india_states.geojson"
 
-with open(
-    geojson_path,
-    "r",
-    encoding="utf-8"
-) as f:
-    geojson = json.load(f)
+    st.write("GeoJSON Path:", geojson_path)
+    st.write("Exists:", geojson_path.exists())
+
+    with open(
+        geojson_path,
+        "r",
+        encoding="utf-8"
+    ) as f:
+        geojson = json.load(f)
 
     # State name mapping
     state_mapping = {
